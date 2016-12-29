@@ -40,10 +40,11 @@ local function ParseWhere( sQuery, tWhere )
 	sQuery = sQuery.."\nWHERE "..tInput[1].statement
 	table.remove( tInput, 1 )
 	if #tInput == 0 then return sQuery end
+	local t = {}
 	for _, tValue in ipairs( tInput ) do
-		sQuery = sQuery.."\n\t"..tValue.join.." "..tValue.statement
+		t[#t + 1] = "\n\t"..tValue.join.." "..tValue.statement
 	end
-	return sQuery
+	return sQuery .. table.concat(t, "")
 end
 
 local function ParseHaving( sQuery, tHaving )
@@ -52,20 +53,22 @@ local function ParseHaving( sQuery, tHaving )
 	sQuery = sQuery.."\nHAVING "..tInput[1].statement
 	table.remove( tInput, 1 )
 	if #tInput == 0 then return sQuery end
+	local t = {}
 	for _, tValue in ipairs( tInput ) do
-		sQuery = sQuery.."\n\t"..tValue.join.." "..tValue.statement
+		t[#t + 1] = "\n\t"..tValue.join.." "..tValue.statement
 	end
-	return sQuery
+	return sQuery .. table.concat(t, "")
 end
 
 local function ParseJoins( sInput, Object )
 	if #(Object._join) <= 0 then
 		return sInput
 	end
-	for Key, tValue in pairs( Object._join ) do
-		sInput = sInput.."\n"..tValue.condition.." "..tValue.tbl.."\n\tON "..tValue.on
+	local t = {}
+	for _, tValue in pairs( Object._join ) do
+		t[#t + 1] = "\n"..tValue.condition.." "..tValue.tbl.."\n\tON "..tValue.on
 	end
-	return sInput
+	return sInput .. table.concat(t, "")
 end
 
 local function ParseGroup( sInput, Object )
@@ -80,8 +83,9 @@ local function ParseOrder( sInput, Object )
 	if #(Object._order) <= 0 then
 		return sInput
 	end
+	local tOrder
 	sInput, tOrder = sInput.."\nORDER BY ", {}
-	for Key, tValue in pairs( Object._order ) do
+	for _, tValue in pairs( Object._order ) do
 		tOrder[#tOrder + 1] = tValue.col.." "..tValue.dir
 	end
 	return sInput..table.concat( tOrder, ",\n\t" )
@@ -289,7 +293,7 @@ function luaqub:group( col )
 	if type( col ) == "string" then
 		table.insert( self._group, col )
 	elseif type( col ) == "table" then
-		for Key, Value in pairs( col ) do
+		for _, Value in pairs( col ) do
 			table.insert( self._group, Value )
 		end
 	end
